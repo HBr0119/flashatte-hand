@@ -379,7 +379,9 @@ __global__ void paged_decode_partition_kernel_v11(
     // Main pipeline loop: wait → compute → __syncthreads → issue next
     // ═══════════════════════════════════════════════════════════════════
     for (int page = first_page; page < last_page; ++page) {
-        int cs = page % NUM_STAGES;  // compute stage
+        // Preload is relative to first_page: the first page is always stage 0.
+        // Absolute page parity selects uninitialized data for odd split starts.
+        int cs = (page - first_page) % NUM_STAGES;
 
         // Wait for compute stage data (BSM loads issued 2 iters ago)
         bsm_wait<2>();
