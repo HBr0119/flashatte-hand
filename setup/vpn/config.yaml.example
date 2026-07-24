@@ -1,0 +1,116 @@
+# Mihomo (Clash Meta) VPN Configuration Template
+# 
+# Copy to /etc/mihomo/config.yaml and fill in your credentials.
+# DO NOT commit the real config.yaml — it contains secrets.
+#
+# Install mihomo:
+#   https://github.com/MetaCubeX/mihomo/releases
+#   wget -O /usr/local/bin/mihomo <url>
+#   chmod +x /usr/local/bin/mihomo
+#
+# Run:
+#   mihomo -d /etc/mihomo
+
+mode: rule
+mixed-port: 7897
+allow-lan: false
+log-level: info
+ipv6: true
+external-controller: '127.0.0.1:9090'
+secret: ''
+unified-delay: true
+tcp-concurrent: true
+bind-address: '*'
+
+dns:
+  enable: true
+  ipv6: false
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  use-hosts: false
+  use-system-hosts: false
+  respect-rules: false
+  nameserver:
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
+  fallback:
+    - tls://1.1.1.1
+    - tls://8.8.8.8
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+    ipcidr:
+      - 240.0.0.0/4
+      - 0.0.0.0/32
+      - 127.0.0.1/32
+
+proxies:
+  # === mieru proxies ===
+  # Fill in your own server/port/username/password.
+  # - name: EXAMPLE
+  #   type: mieru
+  #   server: your-server.example.com
+  #   port: 10040
+  #   username: YOUR_USERNAME
+  #   password: YOUR_PASSWORD
+  #   transport: TCP
+  #
+  # === vless proxy ===
+  # - name: VLESS_EXAMPLE
+  #   type: vless
+  #   server: your-server.example.com
+  #   port: 443
+  #   uuid: YOUR_UUID
+  #   alterId: 0
+  #   cipher: auto
+  #   udp: true
+  #   flow: xtls-rprx-vision
+  #   encryption: none
+  #   tls: true
+  #   skip-cert-verify: false
+  #   servername: www.sony.com
+  #   reality-opts:
+  #     public-key: YOUR_PUBLIC_KEY
+  #     short-id: YOUR_SHORT_ID
+  #   client-fingerprint: chrome
+  #   network: tcp
+
+proxy-groups:
+  - name: Proxy
+    type: select
+    proxies:
+      - Auto
+      - DIRECT
+      # Add your proxy names here:
+      # - EXAMPLE
+
+  - name: AI_Models
+    type: select
+    proxies:
+      # Add AI-optimized proxies here:
+      # - EXAMPLE_AI
+
+  - name: Auto
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    proxies:
+      # Add all proxies for auto selection:
+      # - EXAMPLE
+
+rules:
+  - DOMAIN-SUFFIX,openai.com,AI_Models
+  - DOMAIN-SUFFIX,openrouter.ai,AI_Models
+  - DOMAIN-SUFFIX,anthropic.com,AI_Models
+  - DOMAIN-SUFFIX,claude.ai,AI_Models
+  - DOMAIN-KEYWORD,google,Proxy
+  - DOMAIN-KEYWORD,github,Proxy
+  - DOMAIN-KEYWORD,youtube,Proxy
+  - DOMAIN-KEYWORD,twitter,Proxy
+  - DOMAIN-KEYWORD,facebook,Proxy
+  - GEOIP,CN,DIRECT
+  - MATCH,Proxy
